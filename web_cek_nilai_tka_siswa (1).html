@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cek Nilai TKA Siswa</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #ca8a04;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(59, 130, 246, 0.32), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(14, 165, 233, 0.28), transparent 26%),
+        radial-gradient(circle at 18% 88%, rgba(34, 197, 94, 0.18), transparent 30%),
+        radial-gradient(circle at 82% 82%, rgba(250, 204, 21, 0.16), transparent 26%),
+        linear-gradient(135deg, #e0f2fe 0%, #f8fafc 42%, #dbeafe 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(37, 99, 235, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 99, 235, 0.055) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.88), rgba(0,0,0,0.24));
+      pointer-events: none;
+      z-index: 0;
+      animation: moveGrid 18s linear infinite;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      width: 560px;
+      height: 560px;
+      right: -190px;
+      top: -150px;
+      background: conic-gradient(from 180deg, rgba(37, 99, 235, 0.24), rgba(96, 165, 250, 0.06), rgba(34, 197, 94, 0.14), rgba(250, 204, 21, 0.16), rgba(37, 99, 235, 0.24));
+      border-radius: 50%;
+      filter: blur(12px);
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBg 9s ease-in-out infinite alternate;
+    }
+
+    .admin-screen {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .student-screen {
+      display: none;
+      width: 100%;
+    }
+
+    .admin-page-header {
+      text-align: center;
+      margin-bottom: 22px;
+      padding: 6px 10px 0;
+    }
+
+    .portal-title {
+      margin: 0;
+      font-size: clamp(30px, 4.5vw, 48px);
+      line-height: 1.08;
+      letter-spacing: 1.5px;
+      font-weight: 900;
+      color: #0f172a;
+      text-transform: uppercase;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .portal-school {
+      margin: 10px 0 4px;
+      font-size: clamp(17px, 2.6vw, 25px);
+      line-height: 1.2;
+      letter-spacing: 0.8px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      text-transform: uppercase;
+    }
+
+    .portal-office {
+      display: inline-block;
+      margin: 0;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(219, 234, 254, 0.85);
+      color: #475569;
+      font-size: clamp(13px, 1.8vw, 16px);
+      line-height: 1.4;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.10);
+    }
+
+    .admin-title {
+      text-align: center;
+      font-size: 28px;
+      margin: 0 0 8px;
+    }
+
+    .admin-subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin: 0 0 22px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      margin-top: 14px;
+      background: #64748b;
+    }
+
+    .logout-btn:hover {
+      background: #475569;
+    }
+
+    .top-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+
+    .logo-pesawaran {
+      width: 96px;
+      height: 118px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.15));
+    }
+
+    .logo-sekolah {
+      width: 118px;
+      height: 118px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.15));
+    }
+
+    .admin-screen .card {
+      padding: 32px;
+      border-radius: 24px;
+    }
+
+    .admin-screen .top-brand {
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .student-screen .top-brand .logo-pesawaran {
+      width: 76px;
+      height: 92px;
+    }
+
+    .student-screen .top-brand .logo-sekolah {
+      width: 92px;
+      height: 92px;
+    }
+
+    .brand-text h2 {
+      margin: 0;
+      color: var(--primary-dark);
+      font-size: 18px;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-text p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .watermark-corner {
+      position: fixed;
+      right: 18px;
+      bottom: 14px;
+      color: rgba(15, 23, 42, 0.32);
+      font-size: 13px;
+      font-weight: bold;
+      z-index: 10;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .watermark-bg {
+      display: none;
+    }
+
+    .bg-decor {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(1px);
+      opacity: 0.72;
+      animation: orbitFloat 10s ease-in-out infinite alternate;
+    }
+
+    .orb.one {
+      width: 120px;
+      height: 120px;
+      left: 8%;
+      top: 18%;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.20), rgba(125, 211, 252, 0.08));
+      animation-duration: 11s;
+    }
+
+    .orb.two {
+      width: 86px;
+      height: 86px;
+      right: 12%;
+      bottom: 20%;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(191, 219, 254, 0.10));
+      animation-duration: 13s;
+    }
+
+    .orb.three {
+      width: 64px;
+      height: 64px;
+      left: 16%;
+      bottom: 16%;
+      background: linear-gradient(135deg, rgba(250, 204, 21, 0.20), rgba(96, 165, 250, 0.10));
+      animation-duration: 9s;
+    }
+
+    .floating-icon {
+      position: absolute;
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(12px);
+      font-size: 25px;
+      animation: iconFloat 7s ease-in-out infinite alternate;
+    }
+
+    .floating-icon.book { left: 10%; top: 58%; }
+    .floating-icon.star { right: 11%; top: 34%; animation-delay: 1s; }
+    .floating-icon.medal { right: 18%; bottom: 12%; animation-delay: 1.7s; }
+
+    .wave-line {
+      position: absolute;
+      left: -8%;
+      bottom: -12%;
+      width: 116%;
+      height: 250px;
+      background: linear-gradient(90deg, rgba(37, 99, 235, 0.10), rgba(14, 165, 233, 0.08), rgba(34, 197, 94, 0.08));
+      border-radius: 50% 50% 0 0;
+      transform: rotate(-2deg);
+      animation: waveMove 12s ease-in-out infinite alternate;
+    }
+
+    .admin-screen,
+    .student-screen,
+    .container,
+    .card {
+      position: relative;
+      z-index: 2;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 7px 14px;
+      background: #dbeafe;
+      color: var(--primary-dark);
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin: 0 0 8px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 22px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+      padding: 26px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 17px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .date-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 10px;
+    }
+
+    .date-field label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .date-field input {
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: 1px;
+      font-size: 18px;
+    }
+
+    .date-field input::placeholder {
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .hint {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      background: var(--primary);
+      color: white;
+      padding: 15px 18px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .result {
+      margin-top: 22px;
+      display: none;
+    }
+
+    .alert {
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 16px;
+    }
+
+    .alert.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .alert.info {
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+    }
+
+    .student-card {
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: 14px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(239, 246, 255, 0.92));
+      box-shadow: 0 14px 38px rgba(15, 23, 42, 0.10);
+      animation: popResult 0.5s ease both;
+    }
+
+    .student-name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .score-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .score-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .score-value {
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .Baik {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .Memadai {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .Kurang {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .loading-box {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #f8fafc;
+      border: 1px dashed #93c5fd;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .loading-title {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .loading-text {
+      color: var(--muted);
+      font-size: 14px;
+      min-height: 20px;
+      margin-bottom: 14px;
+    }
+
+    .progress {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #60a5fa, #22c55e);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .shake {
+      animation: shake 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes shake {
+      from { transform: translateX(-2px); }
+      to { transform: translateX(2px); }
+    }
+
+    @keyframes floatBg {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(-42px, 36px) scale(1.06); }
+    }
+
+    @keyframes moveGrid {
+      from { background-position: 0 0, 0 0; }
+      to { background-position: 44px 44px, 44px 44px; }
+    }
+
+    @keyframes orbitFloat {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(28px, -26px) scale(1.08); }
+    }
+
+    @keyframes iconFloat {
+      from { transform: translateY(0) rotate(-4deg); }
+      to { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    @keyframes waveMove {
+      from { transform: translateX(-16px) rotate(-2deg); }
+      to { transform: translateX(22px) rotate(1deg); }
+    }
+
+    @keyframes popResult {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes errorPulse {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .error-shake {
+      animation: errorPulse 0.45s ease;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(12px);
+      z-index: 999;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+      animation: fadeIn 0.25s ease both;
+    }
+
+    .modal-content {
+      width: min(760px, 100%);
+      max-height: 92vh;
+      overflow-y: auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(239,246,255,0.98));
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 28px;
+      box-shadow: 0 34px 90px rgba(15, 23, 42, 0.35);
+      padding: 24px;
+      position: relative;
+      animation: modalPop 0.42s cubic-bezier(.2,.9,.2,1.2) both;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #0f172a;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background: #cbd5e1;
+      transform: none;
+    }
+
+    .result-header {
+      text-align: center;
+      padding: 10px 42px 18px;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: 0.4px;
+    }
+
+    .result-subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .modal-content .student-card {
+      margin-top: 0;
+      background: white;
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      box-shadow: 0 16px 40px rgba(37, 99, 235, 0.10);
+    }
+
+    .modal-content .student-name {
+      text-align: center;
+      font-size: clamp(24px, 4vw, 34px);
+      color: var(--primary-dark);
+      margin-bottom: 12px;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .secondary-btn {
+      background: #64748b;
+    }
+
+    .secondary-btn:hover {
+      background: #475569;
+    }
+
+    .ranking-section {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 251, 235, 0.92), rgba(239, 246, 255, 0.92));
+      border: 1px solid rgba(250, 204, 21, 0.45);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    .ranking-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      color: #92400e;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .ranking-desc {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0 0 14px;
+    }
+
+    .rank-unlocked {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .ranking-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .rank-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      padding: 18px 14px;
+      background: white;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+      text-align: center;
+      animation: popResult 0.5s ease both;
+    }
+
+    .rank-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 8px;
+      background: linear-gradient(90deg, #facc15, #fb923c, #38bdf8);
+    }
+
+    .rank-number {
+      display: inline-grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      border-radius: 999px;
+      margin: 6px auto 12px;
+      background: linear-gradient(135deg, #facc15, #f97316);
+      color: white;
+      font-size: 24px;
+      font-weight: 900;
+      box-shadow: 0 10px 24px rgba(249, 115, 22, 0.25);
+    }
+
+    .rank-card.rank-1 .rank-number { background: linear-gradient(135deg, #facc15, #f59e0b); }
+    .rank-card.rank-2 .rank-number { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rank-card.rank-3 .rank-number { background: linear-gradient(135deg, #d97706, #92400e); }
+
+    .rank-label {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: var(--primary-dark);
+      font-weight: 900;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .rank-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.25;
+      min-height: 46px;
+    }
+
+    .rank-score {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .rank-score b {
+      display: block;
+      font-size: 30px;
+      color: var(--primary-dark);
+      line-height: 1.1;
+    }
+
+    .rank-loading {
+      display: none;
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px dashed rgba(245, 158, 11, 0.8);
+      text-align: center;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .choice-card {
+      border: 1px solid rgba(191, 219, 254, 0.95);
+      border-radius: 22px;
+      padding: 20px;
+      background: linear-gradient(180deg, #ffffff, #eff6ff);
+      text-align: center;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.10);
+    }
+
+    .choice-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 22px 46px rgba(37, 99, 235, 0.18);
+      border-color: var(--primary);
+    }
+
+    .choice-icon {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 12px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      color: white;
+      font-size: 32px;
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.24);
+    }
+
+    .choice-card.rank-choice .choice-icon {
+      background: linear-gradient(135deg, #f59e0b, #facc15);
+      box-shadow: 0 14px 30px rgba(245, 158, 11, 0.25);
+    }
+
+    .choice-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .choice-desc {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .back-menu-btn {
+      margin-top: 14px;
+      background: #0f172a;
+    }
+
+    .back-menu-btn:hover {
+      background: #1e293b;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: translateY(28px) scale(0.92); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+        align-items: flex-start;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .scores {
+        grid-template-columns: 1fr;
+      }
+
+      .date-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      .date-field input {
+        padding: 13px 8px;
+        font-size: 16px;
+      }
+
+      .ranking-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .choice-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-decor" aria-hidden="true">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+    <div class="floating-icon book">📘</div>
+    <div class="floating-icon star">⭐</div>
+    <div class="floating-icon medal">🏅</div>
+    <div class="wave-line"></div>
+  </div>
+  <div class="watermark-corner">by Riyadh Firdaus, M.Pd., Gr.</div>
+
+  <div id="resultModal" class="modal-overlay" onclick="tutupModalJikaLuar(event)">
+    <div class="modal-content">
+      <button class="modal-close" onclick="tutupModal()" aria-label="Tutup hasil">×</button>
+      <div class="result-header">
+        <div id="modalBadge" class="result-badge">🎉 HASIL TKA DITEMUKAN</div>
+        <h2 id="modalTitle" class="result-title">Selamat, Data Nilai Berhasil Dibuka!</h2>
+        <p id="modalSubtitle" class="result-subtitle">Berikut hasil Tes Kemampuan Akademik siswa.</p>
+      </div>
+      <div id="modalResultContent"></div>
+      <div class="modal-actions">
+        <button onclick="tutupModal()">Cek Lagi</button>
+        <button class="secondary-btn" onclick="tutupModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+  <div id="rankPinModal" class="modal-overlay" onclick="tutupPinRankingJikaLuar(event)">
+    <div class="modal-content">
+      <button class="modal-close" onclick="tutupPinRanking()" aria-label="Tutup PIN ranking">×</button>
+      <div class="result-header">
+        <div class="result-badge">🔐 AKSES KHUSUS ADMIN</div>
+        <h2 class="result-title">Masukkan PIN Ranking</h2>
+        <p class="result-subtitle">Masukkan PIN admin khusus untuk membuka ranking TKA tertinggi.</p>
+      </div>
+      <div class="form-group">
+        <label for="rankAccessPin">PIN Akses Admin</label>
+        <input id="rankAccessPin" type="password" inputmode="numeric" placeholder="Masukkan PIN Ranking" autocomplete="off" />
+        <div class="hint">PIN diperlukan untuk menjaga akses ranking siswa.</div>
+      </div>
+      <button onclick="validasiPinRanking()">Buka Ranking TKA</button>
+      <div id="rankAccessMessage"></div>
+    </div>
+  </div>
+
+  <div id="choiceModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="result-header">
+        <div class="result-badge">✅ AKSES BERHASIL DIBUKA</div>
+        <h2 class="result-title">Silakan Pilih Menu</h2>
+        <p class="result-subtitle">Pilih fitur yang ingin digunakan pada Portal Cek Nilai TKA 2026.</p>
+      </div>
+      <div class="choice-grid">
+        <div class="choice-card" onclick="pilihMenu('nilai')">
+          <div class="choice-icon">📝</div>
+          <div class="choice-title">Cek Nilai Siswa</div>
+          <p class="choice-desc">Masukkan nama awal dan tanggal lahir siswa untuk melihat nilai TKA.</p>
+        </div>
+        <div class="choice-card rank-choice" onclick="pilihMenu('ranking')">
+          <div class="choice-icon">🏆</div>
+          <div class="choice-title">Cek Ranking Terbaik</div>
+          <p class="choice-desc">Lihat ranking 1 sampai 3 berdasarkan rata-rata nilai TKA tertinggi.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="adminScreen" class="admin-screen">
+    <div class="admin-page-header">
+      <h1 class="portal-title">PORTAL CEK NILAI TKA 2026</h1>
+      <h2 class="portal-school">UPTD SDN 40 NEGERI KATON</h2>
+      <p class="portal-office">Dinas Pendidikan dan Kebudayaan Kabupaten Pesawaran</p>
+    </div>
+
+    <section class="card">
+      <div class="top-brand">
+        <img class="logo-pesawaran" src="data:image/webp;base64,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" alt="Logo Kabupaten Pesawaran">
+        <img class="logo-sekolah" src="data:image/webp;base64,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" alt="Logo UPTD SDN 40 Negeri Katon">
+      </div>
+
+      <h1 class="admin-title">Login Admin</h1>
+      <p class="admin-subtitle">Masukkan PIN admin terlebih dahulu. Siswa baru bisa mengecek<br>nilai setelah admin membuka akses.</p>
+
+      <div class="form-group">
+        <label for="adminPin">PIN Admin</label>
+        <input id="adminPin" type="password" inputmode="numeric" placeholder="Masukkan PIN Admin" autocomplete="off" />
+        <div class="hint">Akses hanya untuk admin sekolah.</div>
+      </div>
+      <button onclick="loginAdmin()">Buka Akses Cek Nilai</button>
+      <div id="adminMessage"></div>
+    </section>
+  </section>
+
+  <main id="studentScreen" class="container student-screen">
+    <section class="card">
+      <div class="top-brand">
+        <img class="logo-pesawaran" src="data:image/webp;base64,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" alt="Logo Kabupaten Pesawaran">
+        <div class="brand-text">
+          <h2>UPTD SDN 40 NEGERI KATON</h2>
+          <p>Tes Kemampuan Akademik SD/MI Tahun 2026</p>
+        </div>
+      </div>
+      <div class="admin-page-header">
+        <h1 class="portal-title">PORTAL CEK NILAI TKA 2026</h1>
+        <h2 class="portal-school">UPTD SDN 40 NEGERI KATON</h2>
+        <p class="portal-office">Dinas Pendidikan dan Kebudayaan Kabupaten Pesawaran</p>
+      </div>
+      <div id="nilaiSubtitle">
+        <p class="subtitle">Masukkan nama awal siswa dan tanggal lahir pada kolom DD, MM, YYYY.</p>
+        <br>
+      </div>
+
+      <div id="nilaiSection">
+      <div class="form-group">
+        <label for="namaAwal">Nama Awal Siswa</label>
+        <input id="namaAwal" type="text" placeholder="Contoh: Laura / Fahmi / Karin" autocomplete="off" />
+        <div class="hint">Ketik nama awal atau beberapa huruf depan nama siswa agar data tidak tertukar jika tanggal lahir sama.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Tanggal Lahir Siswa</label>
+        <div class="date-grid">
+          <div class="date-field">
+            <label for="tglHari">DD</label>
+            <input id="tglHari" type="text" inputmode="numeric" maxlength="2" placeholder="18" autocomplete="off" />
+          </div>
+          <div class="date-field">
+            <label for="tglBulan">MM</label>
+            <input id="tglBulan" type="text" inputmode="numeric" maxlength="2" placeholder="01" autocomplete="off" />
+          </div>
+          <div class="date-field">
+            <label for="tglTahun">YYYY</label>
+            <input id="tglTahun" type="text" inputmode="numeric" maxlength="4" placeholder="2014" autocomplete="off" />
+          </div>
+        </div>
+        <div class="hint">Isi tanggal, bulan, dan tahun lahir secara terpisah. Contoh: <b>18</b> | <b>01</b> | <b>2014</b>.</div>
+      </div>
+      <button id="btnCek" onclick="cekNilai()">Cek Nilai</button>
+
+      <div id="loading" class="loading-box">
+        <div class="loading-title shake">⏳ Mohon bersabar...</div>
+        <div id="loadingText" class="loading-text">Data sedang diperiksa...</div>
+        <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+      </div>
+
+      <div id="message"></div>
+      <div id="result" class="result"></div>
+      </div>
+
+      <div id="rankingSection" class="ranking-section">
+        <div class="ranking-title">🏆 Menu Ranking TKA Tertinggi</div>
+        <p class="ranking-desc">Klik tombol di bawah untuk melihat ranking 1 sampai 3 berdasarkan rata-rata nilai TKA. Hasil akan muncul setelah loading agar lebih seru.</p>
+        <div id="rankUnlocked" class="rank-unlocked" style="display:block;">
+          <button onclick="mintaPinRanking()">🏆 Cek Ranking TKA Tertinggi</button>
+        </div>
+        <div id="rankLoading" class="rank-loading">
+          <div class="loading-title shake">🏆 Menyiapkan ranking terbaik...</div>
+          <div id="rankLoadingText" class="loading-text">Menghitung seluruh nilai siswa...</div>
+          <div class="progress"><div id="rankProgressBar" class="progress-bar"></div></div>
+        </div>
+      </div>
+
+      <button class="back-menu-btn" onclick="bukaPilihanMenu()">Kembali ke Pilihan Menu</button>
+      <button class="logout-btn" onclick="kunciAkses()">Kunci Akses Kembali</button>
+    </section>
+
+    <p class="footer">Data: DKHTKA Tes Kemampuan Akademik SD/MI Tahun 2026</p>
+  </main>
+
+  <script>
+    const PIN_ADMIN = "10800160";
+    const PIN_RANKING = "180200";
+
+    let audioCtx;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(freq, start, duration, type = "sine", volume = 0.08) {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + duration + 0.04);
+    }
+
+    function soundSuccess() {
+      playTone(523.25, 0, 0.14, "sine", 0.08);
+      playTone(659.25, 0.12, 0.14, "sine", 0.08);
+      playTone(783.99, 0.24, 0.22, "sine", 0.09);
+    }
+
+    function soundError() {
+      playTone(220, 0, 0.18, "sawtooth", 0.06);
+      playTone(164.81, 0.16, 0.22, "sawtooth", 0.06);
+    }
+
+    function beriEfekError(element) {
+      if (!element) return;
+      element.classList.remove("error-shake");
+      void element.offsetWidth;
+      element.classList.add("error-shake");
+    }
+
+    function loginAdmin() {
+      const pin = document.getElementById("adminPin").value.trim();
+      const adminMessage = document.getElementById("adminMessage");
+
+      if (pin === PIN_ADMIN) {
+        document.getElementById("adminScreen").style.display = "none";
+        document.getElementById("studentScreen").style.display = "none";
+        document.getElementById("choiceModal").classList.add("show");
+        adminMessage.innerHTML = "";
+        soundSuccess();
+      } else {
+        adminMessage.innerHTML = `<div class="alert error">PIN salah. Silakan masukkan PIN admin yang benar.</div>`;
+        soundError();
+        beriEfekError(document.querySelector("#adminScreen .card"));
+      }
+    }
+
+    function bukaPilihanMenu() {
+      document.getElementById("studentScreen").style.display = "none";
+      document.getElementById("choiceModal").classList.add("show");
+    }
+
+    function pilihMenu(menu) {
+      document.getElementById("choiceModal").classList.remove("show");
+      document.getElementById("studentScreen").style.display = "block";
+
+      if (menu === "nilai") {
+        document.getElementById("nilaiSection").style.display = "block";
+        document.getElementById("rankingSection").style.display = "none";
+        document.getElementById("nilaiSubtitle").style.display = "block";
+        setTimeout(() => document.getElementById("namaAwal").focus(), 200);
+      }
+
+      if (menu === "ranking") {
+        document.getElementById("nilaiSection").style.display = "none";
+        document.getElementById("rankingSection").style.display = "block";
+        document.getElementById("nilaiSubtitle").style.display = "none";
+      }
+    }
+
+    function kunciAkses() {
+      document.getElementById("studentScreen").style.display = "none";
+      document.getElementById("choiceModal").classList.remove("show");
+      document.getElementById("adminScreen").style.display = "block";
+      document.getElementById("adminPin").value = "";
+      document.getElementById("tglHari").value = "";
+      document.getElementById("tglBulan").value = "";
+      document.getElementById("tglTahun").value = "";
+      document.getElementById("namaAwal").value = "";
+      document.getElementById("message").innerHTML = "";
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("result").style.display = "none";
+      document.getElementById("nilaiSubtitle").style.display = "block";
+      document.getElementById("rankPinModal").classList.remove("show");
+      document.getElementById("rankUnlocked").style.display = "block";
+      document.getElementById("rankLoading").style.display = "none";
+      setTimeout(() => document.getElementById("adminPin").focus(), 200);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("adminPin").focus();
+      document.getElementById("adminPin").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") loginAdmin();
+      });
+    });
+    const siswa = [
+      { no: 1, nomor: "T1-26-12-11-0111-0001-8", nisn: "3142019648", nama: "Karin Maulita Anazwa", ttl: "Negara Saka, 18 Januari 2014", dob: "18/01/2014", matematika: "40.00", ketMat: "Memadai", indonesia: "56.67", ketInd: "Memadai" },
+      { no: 2, nomor: "T1-26-12-11-0111-0002-7", nisn: "0139235330", nama: "RIKO SATRIA PRANATA", ttl: "Negara Saka, 1 September 2013", dob: "01/09/2013", matematika: "30.00", ketMat: "Kurang", indonesia: "43.33", ketInd: "Kurang" },
+      { no: 3, nomor: "T1-26-12-11-0111-0003-6", nisn: "0132344185", nama: "MUHAMMAD ZAHID DHYMAS KARA", ttl: "Suka Maju, 23 Oktober 2013", dob: "23/10/2013", matematika: "33.33", ketMat: "Memadai", indonesia: "63.33", ketInd: "Memadai" },
+      { no: 4, nomor: "T1-26-12-11-0111-0004-5", nisn: "0133899914", nama: "Bima Dwi Satria", ttl: "Negara Saka, 17 November 2013", dob: "17/11/2013", matematika: "36.67", ketMat: "Memadai", indonesia: "60.00", ketInd: "Memadai" },
+      { no: 5, nomor: "T1-26-12-11-0111-0005-4", nisn: "3139885403", nama: "Airin Shaqila Anabel", ttl: "Negara Saka, 15 Desember 2013", dob: "15/12/2013", matematika: "40.00", ketMat: "Memadai", indonesia: "70.00", ketInd: "Memadai" },
+      { no: 6, nomor: "T1-26-12-11-0111-0006-3", nisn: "3131219110", nama: "IRDINA VERDA", ttl: "Negara Saka, 19 Juni 2013", dob: "19/06/2013", matematika: "30.00", ketMat: "Kurang", indonesia: "76.67", ketInd: "Baik" },
+      { no: 7, nomor: "T1-26-12-11-0111-0007-2", nisn: "0139931885", nama: "Krisan Rahmah", ttl: "Negara Saka, 18 Desember 2013", dob: "18/12/2013", matematika: "46.67", ketMat: "Memadai", indonesia: "56.67", ketInd: "Memadai" },
+      { no: 8, nomor: "T1-26-12-11-0111-0008-9", nisn: "3132682292", nama: "Fathin Nur Asyfa", ttl: "Negara Saka, 6 Desember 2013", dob: "06/12/2013", matematika: "56.67", ketMat: "Baik", indonesia: "66.67", ketInd: "Memadai" },
+      { no: 9, nomor: "T1-26-12-11-0111-0009-8", nisn: "3149589927", nama: "Amanda Febry Yanti", ttl: "Negara Saka, 24 Februari 2014", dob: "24/02/2014", matematika: "26.67", ketMat: "Kurang", indonesia: "70.00", ketInd: "Memadai" },
+      { no: 10, nomor: "T1-26-12-11-0111-0010-7", nisn: "3138039244", nama: "Chika Aulia Sari", ttl: "Negara Saka, 13 Oktober 2013", dob: "13/10/2013", matematika: "50.00", ketMat: "Memadai", indonesia: "43.33", ketInd: "Kurang" },
+      { no: 11, nomor: "T1-26-12-11-0111-0011-6", nisn: "3146492771", nama: "Shidqia Khoirunisa", ttl: "Negara Saka, 6 Maret 2014", dob: "06/03/2014", matematika: "36.67", ketMat: "Memadai", indonesia: "73.33", ketInd: "Memadai" },
+      { no: 12, nomor: "T1-26-12-11-0111-0012-5", nisn: "0139522188", nama: "Arya Nur Firdaus", ttl: "Pejambon, 28 Oktober 2013", dob: "28/10/2013", matematika: "43.33", ketMat: "Memadai", indonesia: "43.33", ketInd: "Kurang" },
+      { no: 13, nomor: "T1-26-12-11-0111-0013-4", nisn: "0133736410", nama: "Azhita Aninda Gusti", ttl: "Negara Saka, 28 Juni 2013", dob: "28/06/2013", matematika: "50.00", ketMat: "Memadai", indonesia: "93.33", ketInd: "Baik" },
+      { no: 14, nomor: "T1-26-12-11-0111-0014-3", nisn: "3134142333", nama: "Khaila Salsabila", ttl: "Negara Saka, 13 September 2013", dob: "13/09/2013", matematika: "40.00", ketMat: "Memadai", indonesia: "63.33", ketInd: "Memadai" },
+      { no: 15, nomor: "T1-26-12-11-0111-0015-2", nisn: "0137193554", nama: "Danu Wendra", ttl: "Sidodadi, 29 Mei 2013", dob: "29/05/2013", matematika: "33.33", ketMat: "Memadai", indonesia: "66.67", ketInd: "Memadai" },
+      { no: 16, nomor: "T1-26-12-11-0111-0016-9", nisn: "0147374473", nama: "Arka Abydzar Taqi", ttl: "Negara Saka, 8 Februari 2014", dob: "08/02/2014", matematika: "36.67", ketMat: "Memadai", indonesia: "53.33", ketInd: "Memadai" },
+      { no: 17, nomor: "T1-26-12-11-0111-0017-8", nisn: "0146636157", nama: "Reva Latifa", ttl: "Pejambon, 10 April 2014", dob: "10/04/2014", matematika: "40.00", ketMat: "Memadai", indonesia: "46.67", ketInd: "Kurang" },
+      { no: 18, nomor: "T1-26-12-11-0111-0018-7", nisn: "3147964456", nama: "Aprilio Rifandi", ttl: "Bandar Lampung, 5 April 2014", dob: "05/04/2014", matematika: "50.00", ketMat: "Memadai", indonesia: "56.67", ketInd: "Memadai" },
+      { no: 19, nomor: "T1-26-12-11-0111-0019-6", nisn: "0137034103", nama: "Noval Syafiq Pratama", ttl: "Negara Saka, 4 November 2013", dob: "04/11/2013", matematika: "26.67", ketMat: "Kurang", indonesia: "66.67", ketInd: "Memadai" },
+      { no: 20, nomor: "T1-26-12-11-0111-0020-5", nisn: "0138240585", nama: "Azra Alzafira", ttl: "Pejambon, 21 Agustus 2013", dob: "21/08/2013", matematika: "46.67", ketMat: "Memadai", indonesia: "73.33", ketInd: "Memadai" },
+      { no: 21, nomor: "T1-26-12-11-0111-0021-4", nisn: "3130582684", nama: "Aqilah Fairuz Izza Tunnisa", ttl: "Bandar Lampung, 16 September 2013", dob: "16/09/2013", matematika: "53.33", ketMat: "Memadai", indonesia: "60.00", ketInd: "Memadai" },
+      { no: 22, nomor: "T1-26-12-11-0111-0022-3", nisn: "0135299111", nama: "Vera Komalasari", ttl: "Negara Saka, 1 November 2013", dob: "01/11/2013", matematika: "30.00", ketMat: "Kurang", indonesia: "36.67", ketInd: "Kurang" },
+      { no: 23, nomor: "T1-26-12-11-0111-0023-2", nisn: "3136649833", nama: "Nofal Fais Ramadhan", ttl: "Negara Saka, 22 Juli 2013", dob: "22/07/2013", matematika: "40.00", ketMat: "Memadai", indonesia: "43.33", ketInd: "Kurang" },
+      { no: 24, nomor: "T1-26-12-11-0111-0024-9", nisn: "0135944907", nama: "Rizki Akbar Agun", ttl: "Negara Saka, 13 Desember 2013", dob: "13/12/2013", matematika: "36.67", ketMat: "Memadai", indonesia: "80.00", ketInd: "Baik" },
+      { no: 25, nomor: "T1-26-12-11-0111-0025-8", nisn: "0133652582", nama: "Rifka Fitrotul Maula", ttl: "Negara Saka, 27 Desember 2013", dob: "27/12/2013", matematika: "40.00", ketMat: "Memadai", indonesia: "73.33", ketInd: "Memadai" },
+      { no: 26, nomor: "T1-26-12-11-0111-0026-7", nisn: "0136722667", nama: "Zahra Aulia Vannesa", ttl: "Negara Saka, 21 Agustus 2013", dob: "21/08/2013", matematika: "36.67", ketMat: "Memadai", indonesia: "63.33", ketInd: "Memadai" },
+      { no: 27, nomor: "T1-26-12-11-0111-0027-6", nisn: "0135189941", nama: "Disty Letisya Putri", ttl: "Negara Saka, 6 November 2013", dob: "06/11/2013", matematika: "26.67", ketMat: "Kurang", indonesia: "50.00", ketInd: "Memadai" },
+      { no: 28, nomor: "T1-26-12-11-0111-0028-5", nisn: "3137229587", nama: "FALENA DESILIA PUTRI", ttl: "Tanjung Sari, 30 Desember 2013", dob: "30/12/2013", matematika: "63.33", ketMat: "Baik", indonesia: "46.67", ketInd: "Kurang" },
+      { no: 29, nomor: "T1-26-12-11-0111-0029-4", nisn: "0136591348", nama: "Chelsea Putri Ramadhany", ttl: "Negara Saka, 6 Agustus 2013", dob: "06/08/2013", matematika: "46.67", ketMat: "Memadai", indonesia: "73.33", ketInd: "Memadai" },
+      { no: 30, nomor: "T1-26-12-11-0111-0030-3", nisn: "3138132031", nama: "Kiyano Al Fahri", ttl: "Negara Saka, 29 Desember 2013", dob: "29/12/2013", matematika: "60.00", ketMat: "Baik", indonesia: "56.67", ketInd: "Memadai" },
+      { no: 31, nomor: "T1-26-12-11-0111-0031-2", nisn: "3136620728", nama: "Laura Sapira", ttl: "Negara Saka, 9 Oktober 2013", dob: "09/10/2013", matematika: "36.67", ketMat: "Memadai", indonesia: "46.67", ketInd: "Kurang" },
+      { no: 32, nomor: "T1-26-12-11-0111-0032-9", nisn: "0131024607", nama: "Fahmi Pratomo", ttl: "Negara Saka, 9 Oktober 2013", dob: "09/10/2013", matematika: "46.67", ketMat: "Memadai", indonesia: "76.67", ketInd: "Baik" },
+      { no: 33, nomor: "T1-26-12-11-0111-0033-8", nisn: "3144115120", nama: "MUHAMMAD YAHYA RIFANO", ttl: "Negara Saka, 12 Februari 2014", dob: "12/02/2014", matematika: "63.33", ketMat: "Baik", indonesia: "80.00", ketInd: "Baik" },
+      { no: 34, nomor: "T1-26-12-11-0111-0034-7", nisn: "0134809108", nama: "Jasrian Handi Cahya", ttl: "Negara Saka, 27 Juli 2013", dob: "27/07/2013", matematika: "56.67", ketMat: "Baik", indonesia: "66.67", ketInd: "Memadai" },
+      { no: 35, nomor: "T1-26-12-11-0111-0035-6", nisn: "3134909928", nama: "Azkia Andini", ttl: "Negara Saka, 12 Juni 2013", dob: "12/06/2013", matematika: "73.33", ketMat: "Baik", indonesia: "76.67", ketInd: "Baik" },
+      { no: 36, nomor: "T1-26-12-11-0111-0036-5", nisn: "3145845969", nama: "ALYA NUR AFIFAH", ttl: "Branti Raya, 24 Januari 2014", dob: "24/01/2014", matematika: "63.33", ketMat: "Baik", indonesia: "80.00", ketInd: "Baik" },
+      { no: 37, nomor: "T1-26-12-11-0111-0037-4", nisn: "3141240038", nama: "IZLA AZZAHRA NURSABILA", ttl: "Negara Saka, 10 Februari 2014", dob: "10/02/2014", matematika: "46.67", ketMat: "Memadai", indonesia: "63.33", ketInd: "Memadai" }
+    ];
+
+    const bulan = {
+      januari: "01",
+      februari: "02",
+      maret: "03",
+      april: "04",
+      mei: "05",
+      juni: "06",
+      juli: "07",
+      agustus: "08",
+      september: "09",
+      oktober: "10",
+      november: "11",
+      desember: "12"
+    };
+
+    function normalizeTanggal(input) {
+      let value = input.trim().toLowerCase();
+      if (!value) return "";
+
+      value = value.replace(/-/g, "/").replace(/\./g, "/").replace(/,/g, " ").replace(/\s+/g, " ");
+
+      const teksBulan = value.match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/i);
+      if (teksBulan && bulan[teksBulan[2]]) {
+        const d = teksBulan[1].padStart(2, "0");
+        const m = bulan[teksBulan[2]];
+        const y = teksBulan[3];
+        return `${d}/${m}/${y}`;
+      }
+
+      const angka = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (angka) {
+        const d = angka[1].padStart(2, "0");
+        const m = angka[2].padStart(2, "0");
+        const y = angka[3];
+        return `${d}/${m}/${y}`;
+      }
+
+      return value;
+    }
+
+    function getPredikatRata(rata) {
+      if (rata >= 55) return "Baik";
+      if (rata >= 33.33) return "Memadai";
+      return "Kurang";
+    }
+
+    function buatKartuHasil(data) {
+      return data.map(item => {
+        const rata = ((parseFloat(item.matematika) + parseFloat(item.indonesia)) / 2).toFixed(2);
+        const ketRata = getPredikatRata(parseFloat(rata));
+
+        return `
+        <div class="student-card">
+          <div class="student-name">${item.nama}</div>
+          <div class="meta">
+            No. Peserta: <b>${item.nomor}</b><br>
+            NISN: <b>${item.nisn}</b><br>
+            Tempat, Tanggal Lahir: <b>${item.ttl}</b>
+          </div>
+          <div class="scores">
+            <div class="score-box">
+              <div class="score-label">Matematika</div>
+              <div class="score-value">${item.matematika}</div>
+              <span class="status ${item.ketMat}">${item.ketMat}</span>
+            </div>
+            <div class="score-box">
+              <div class="score-label">Bahasa Indonesia</div>
+              <div class="score-value">${item.indonesia}</div>
+              <span class="status ${item.ketInd}">${item.ketInd}</span>
+            </div>
+            <div class="score-box">
+              <div class="score-label">Rata-rata</div>
+              <div class="score-value">${rata}</div>
+              <span class="status ${ketRata}">${ketRata}</span>
+            </div>
+          </div>
+        </div>
+      `}).join("");
+    }
+
+    function tampilkanHasil(data) {
+      const message = document.getElementById("message");
+      const result = document.getElementById("result");
+      const modal = document.getElementById("resultModal");
+      const modalContent = document.getElementById("modalResultContent");
+
+      result.innerHTML = "";
+      result.style.display = "none";
+
+      if (data.length > 1) {
+        message.innerHTML = `<div class="alert info">Ditemukan ${data.length} siswa dengan tanggal lahir yang sama. Silakan cek nama siswa pada pop-up hasil.</div>`;
+      }
+
+      document.getElementById("modalBadge").innerText = "🎉 HASIL TKA DITEMUKAN";
+      document.getElementById("modalTitle").innerText = "Selamat, Data Nilai Berhasil Dibuka!";
+      document.getElementById("modalSubtitle").innerText = "Berikut hasil Tes Kemampuan Akademik siswa.";
+      modalContent.innerHTML = buatKartuHasil(data);
+      modal.classList.add("show");
+    }
+
+    function tutupModal() {
+      document.getElementById("resultModal").classList.remove("show");
+      document.getElementById("namaAwal").focus();
+    }
+
+    function tutupModalJikaLuar(event) {
+      if (event.target.id === "resultModal") tutupModal();
+    }
+
+    function hitungRata(item) {
+      return (parseFloat(item.matematika) + parseFloat(item.indonesia)) / 2;
+    }
+
+    function bukaRanking() {
+      const pin = document.getElementById("rankPin").value.trim();
+      const rankMessage = document.getElementById("rankMessage");
+      const rankUnlocked = document.getElementById("rankUnlocked");
+
+      rankMessage.innerHTML = "";
+
+      if (pin === PIN_RANKING) {
+        rankUnlocked.style.display = "block";
+        rankMessage.innerHTML = `<div class="alert info">PIN benar. Tombol cek ranking TKA tertinggi sudah terbuka.</div>`;
+        soundSuccess();
+      } else {
+        rankUnlocked.style.display = "none";
+        rankMessage.innerHTML = `<div class="alert error">PIN ranking salah. Menu ranking belum bisa dibuka.</div>`;
+        soundError();
+        beriEfekError(document.querySelector(".ranking-section"));
+      }
+    }
+
+    function buatKartuRanking() {
+      const topRank = [...siswa]
+        .map(item => ({ ...item, rata: hitungRata(item) }))
+        .sort((a, b) => b.rata - a.rata || parseFloat(b.indonesia) - parseFloat(a.indonesia) || parseFloat(b.matematika) - parseFloat(a.matematika))
+        .slice(0, 3);
+
+      return `<div class="ranking-grid">${topRank.map((item, index) => {
+        const rank = index + 1;
+        const emoji = rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉";
+        return `
+          <div class="rank-card rank-${rank}">
+            <div class="rank-number">${emoji}</div>
+            <div class="rank-label">RANKING ${rank}</div>
+            <div class="rank-name">${item.nama}</div>
+            <div class="rank-score">
+              Rata-rata Nilai
+              <b>${item.rata.toFixed(2)}</b>
+              Matematika: ${item.matematika}<br>
+              Bahasa Indonesia: ${item.indonesia}
+            </div>
+          </div>
+        `;
+      }).join("")}</div>`;
+    }
+
+    function mintaPinRanking() {
+      document.getElementById("rankAccessPin").value = "";
+      document.getElementById("rankAccessMessage").innerHTML = "";
+      document.getElementById("rankPinModal").classList.add("show");
+      setTimeout(() => document.getElementById("rankAccessPin").focus(), 150);
+    }
+
+    function tutupPinRanking() {
+      document.getElementById("rankPinModal").classList.remove("show");
+    }
+
+    function tutupPinRankingJikaLuar(event) {
+      if (event.target.id === "rankPinModal") tutupPinRanking();
+    }
+
+    function validasiPinRanking() {
+      const pin = document.getElementById("rankAccessPin").value.trim();
+      const msg = document.getElementById("rankAccessMessage");
+
+      if (pin === PIN_RANKING) {
+        msg.innerHTML = "";
+        document.getElementById("rankPinModal").classList.remove("show");
+        soundSuccess();
+        cekRankingTKA();
+      } else {
+        msg.innerHTML = `<div class="alert error">PIN ranking salah. Silakan masukkan PIN yang benar.</div>`;
+        soundError();
+        beriEfekError(document.querySelector("#rankPinModal .modal-content"));
+      }
+    }
+
+    function cekRankingTKA() {
+      const rankLoading = document.getElementById("rankLoading");
+      const rankLoadingText = document.getElementById("rankLoadingText");
+      const rankProgressBar = document.getElementById("rankProgressBar");
+      const rankButton = document.querySelector("#rankUnlocked button");
+
+      rankLoading.style.display = "block";
+      rankProgressBar.style.width = "0%";
+      rankButton.disabled = true;
+      rankButton.innerText = "Menghitung Ranking...";
+
+      const teksRanking = [
+        "Mengumpulkan seluruh nilai siswa...",
+        "Menghitung rata-rata Matematika dan Bahasa Indonesia...",
+        "Menyusun ranking 1 sampai 3...",
+        "Sebentar lagi juara TKA akan tampil..."
+      ];
+
+      let step = 0;
+      rankLoadingText.innerText = teksRanking[step];
+      rankProgressBar.style.width = "15%";
+
+      const interval = setInterval(() => {
+        step++;
+        if (step < teksRanking.length) {
+          rankLoadingText.innerText = teksRanking[step];
+          rankProgressBar.style.width = `${25 + step * 22}%`;
+        }
+      }, 950);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        rankProgressBar.style.width = "100%";
+
+        setTimeout(() => {
+          rankLoading.style.display = "none";
+          rankButton.disabled = false;
+          rankButton.innerText = "🏆 Cek Ranking TKA Tertinggi";
+
+          document.getElementById("modalBadge").innerText = "🏆 RANKING TKA TERTINGGI";
+          document.getElementById("modalTitle").innerText = "Top 3 Nilai TKA Tahun 2026";
+          document.getElementById("modalSubtitle").innerText = "Ranking berdasarkan rata-rata nilai Matematika dan Bahasa Indonesia.";
+          document.getElementById("modalResultContent").innerHTML = buatKartuRanking();
+          document.getElementById("resultModal").classList.add("show");
+          soundSuccess();
+        }, 500);
+      }, 4200);
+    }
+
+    function buatTanggalLahir() {
+      const hariMentah = document.getElementById("tglHari").value.trim();
+      const bulanMentah = document.getElementById("tglBulan").value.trim();
+      const tahun = document.getElementById("tglTahun").value.trim();
+
+      if (!hariMentah || !bulanMentah || !tahun) return "";
+
+      const hari = hariMentah.padStart(2, "0");
+      const bulanInput = bulanMentah.padStart(2, "0");
+
+      if (!/^[0-9]{2}$/.test(hari) || !/^[0-9]{2}$/.test(bulanInput) || !/^[0-9]{4}$/.test(tahun)) return "invalid";
+
+      const d = Number(hari);
+      const m = Number(bulanInput);
+      const y = Number(tahun);
+      const tanggal = new Date(y, m - 1, d);
+
+      if (m < 1 || m > 12 || d < 1 || d > 31 || tanggal.getFullYear() !== y || tanggal.getMonth() !== m - 1 || tanggal.getDate() !== d) {
+        return "invalid";
+      }
+
+      return hari + "/" + bulanInput + "/" + tahun;
+    }
+
+    function cekNilai() {
+      const namaAwalInput = document.getElementById("namaAwal").value;
+      const namaAwal = namaAwalInput.trim().toLowerCase();
+      const message = document.getElementById("message");
+      const result = document.getElementById("result");
+      const loading = document.getElementById("loading");
+      const loadingText = document.getElementById("loadingText");
+      const progressBar = document.getElementById("progressBar");
+      const btnCek = document.getElementById("btnCek");
+      const dob = buatTanggalLahir();
+
+      message.innerHTML = "";
+      result.innerHTML = "";
+      result.style.display = "none";
+      loading.style.display = "none";
+      progressBar.style.width = "0%";
+
+      if (!namaAwal) {
+        message.innerHTML = `<div class="alert error">Nama awal siswa belum diisi. Contoh: <b>Laura</b> atau <b>Fahmi</b>.</div>`;
+        soundError();
+        beriEfekError(document.querySelector("#studentScreen .card"));
+        document.getElementById("namaAwal").focus();
+        return;
+      }
+
+      if (namaAwal.length < 2) {
+        message.innerHTML = `<div class="alert error">Nama awal minimal 2 huruf agar hasil lebih akurat. Contoh: <b>La</b>, <b>Fa</b>, atau <b>Ka</b>.</div>`;
+        soundError();
+        beriEfekError(document.querySelector("#studentScreen .card"));
+        document.getElementById("namaAwal").focus();
+        return;
+      }
+
+      if (!dob) {
+        message.innerHTML = `<div class="alert error">Tanggal lahir belum lengkap. Isi <b>DD</b>, <b>MM</b>, dan <b>YYYY</b>. Contoh: <b>18</b> | <b>01</b> | <b>2014</b>.</div>`;
+        soundError();
+        beriEfekError(document.querySelector("#studentScreen .card"));
+        document.getElementById("tglHari").focus();
+        return;
+      }
+
+      if (dob === "invalid") {
+        message.innerHTML = `<div class="alert error">Format tanggal lahir tidak valid. Contoh yang benar: <b>18</b> | <b>01</b> | <b>2014</b>.</div>`;
+        soundError();
+        beriEfekError(document.querySelector("#studentScreen .card"));
+        document.getElementById("tglHari").focus();
+        return;
+      }
+
+      const data = siswa.filter(item =>
+        item.nama.toLowerCase().startsWith(namaAwal) && item.dob === dob
+      );
+
+      loading.style.display = "block";
+      btnCek.disabled = true;
+      btnCek.innerText = "Sedang Memproses...";
+
+      const teksTunggu = [
+        "Mencocokkan nama awal dan tanggal lahir siswa...",
+        "Membuka data nilai TKA...",
+        "Menghitung nilai rata-rata...",
+        "Sebentar lagi hasil keluar..."
+      ];
+
+      let step = 0;
+      loadingText.innerText = teksTunggu[step];
+      progressBar.style.width = "15%";
+
+      const interval = setInterval(() => {
+        step++;
+        if (step < teksTunggu.length) {
+          loadingText.innerText = teksTunggu[step];
+          progressBar.style.width = `${25 + step * 22}%`;
+        }
+      }, 900);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        progressBar.style.width = "100%";
+
+        setTimeout(() => {
+          loading.style.display = "none";
+          btnCek.disabled = false;
+          btnCek.innerText = "Cek Nilai";
+
+          if (data.length === 0) {
+            message.innerHTML = `<div class="alert error">Data tidak ditemukan. Pastikan nama awal dan tanggal lahir benar. Contoh: <b>Laura</b> dan <b>09/10/2013</b>.</div>`;
+            soundError();
+            beriEfekError(document.querySelector("#studentScreen .card"));
+            return;
+          }
+
+          soundSuccess();
+          tampilkanHasil(data);
+        }, 450);
+      }, 3800);
+    }
+
+    document.getElementById("namaAwal").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") document.getElementById("tglHari").focus();
+    });
+
+    function hanyaAngkaDanPindah(inputId, nextId, maxLength) {
+      const input = document.getElementById(inputId);
+      input.addEventListener("input", function() {
+        this.value = this.value.replace(/[^0-9]/g, "").slice(0, maxLength);
+        if (this.value.length === maxLength && nextId) document.getElementById(nextId).focus();
+      });
+      input.addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+          if (nextId) document.getElementById(nextId).focus();
+          else cekNilai();
+        }
+      });
+    }
+
+    hanyaAngkaDanPindah("tglHari", "tglBulan", 2);
+    hanyaAngkaDanPindah("tglBulan", "tglTahun", 2);
+    hanyaAngkaDanPindah("tglTahun", null, 4);
+
+    
+
+    document.getElementById("rankAccessPin").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") validasiPinRanking();
+    });
+
+    document.addEventListener("keydown", function(event) {
+      if (event.key === "Escape") {
+        tutupModal();
+        tutupPinRanking();
+      }
+    });
+  </script>
+</body>
+</html>
